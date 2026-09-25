@@ -1,5 +1,6 @@
 temp/
 idea/
+.env
 /.idea/.gitignore
 /.idea/langgraph-demo.iml
 /.idea/misc.xml
