@@ -8,6 +8,8 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 - 使用 `StateGraph` 构建「节点 + 边」的工作流图。
 - 对比三种 State 定义方式：`TypedDict`、`dataclass`、`pydantic.BaseModel`。
 - 演示 `Annotated[类型, reducer]` 状态归约（如列表追加、覆盖等）。
+- 静态分支与动态分支：`add_conditional_edges`、`Command(goto=...)`、`Send`（map-reduce）。
+- `Send` 配合工具（`@tool`）调用的 map-reduce 示例。
 - 每个示例均可直接运行，并在 Notebook 中渲染出图结构。
 
 ## 目录结构
@@ -73,7 +75,7 @@ uv run jupyter lab
 | `05-MultiSchema.ipynb` | 多状态图（input/output schema）与私有状态 |
 | `06-预定义状态.ipynb` | 预定义状态、多 schema 与流式输出（含思考内容） |
 | `chapter02/01-add_sequence.ipynb` | 用 `StateGraph.add_sequence` 顺序添加并串联节点 |
-| `chapter02/02-静态分支&动态分支.ipynb` | 静态分支与动态分支（`add_conditional_edges` / `Command` / `Send`）的区别与用法 |
+| `chapter02/02-静态分支&动态分支.ipynb` | 静态分支与动态分支（`add_conditional_edges` / `Command` / `Send`）的区别与用法，含 `Send` + 工具调用示例 |
 
 ## License
 
