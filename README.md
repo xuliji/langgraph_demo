@@ -16,10 +16,14 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 langgraph_demo/
 ├── chapter01/
 │   ├── 01-graph.ipynb                        # StateGraph 基础：节点、边、执行
+│   ├── 02-Typedict&dataclass&Pydantic.ipynb  # 三种 State 定义方式对比
 │   ├── 03-StateReducer.ipynb                 # State Reducer 归约机制
 │   ├── 04-节点并行执行.ipynb                 # 并行执行与其异常处理
 │   ├── 05-MultiSchema.ipynb                  # 多状态图与私有状态
-│   └── 02-Typedict&dataclass&Pydantic.ipynb  # 三种 State 定义方式对比
+│   └── 06-预定义状态.ipynb                   # 预定义状态与流式输出
+├── chapter02/
+│   ├── 01-add_sequence.ipynb                 # add_sequence 顺序添加节点
+│   └── 02-静态分支&动态分支.ipynb            # 静态边与动态路由（条件边/Command/Send）
 ├── pyproject.toml                            # 项目依赖与 Python 版本约束
 ├── uv.lock                                   # uv 锁定的依赖版本
 ├── .python-version                            # 指定 Python 3.13
@@ -63,10 +67,13 @@ uv run jupyter lab
 | Notebook | 内容 |
 | --- | --- |
 | `01-graph.ipynb` | 用 `StateGraph` 定义状态、添加节点与边，并运行图 |
+| `02-Typedict&dataclass&Pydantic.ipynb` | `TypedDict` / `dataclass` / `Pydantic` 三种 State 定义方式的示例与优缺点对比 |
 | `03-StateReducer.ipynb` | 通过 `Annotated` 为状态字段指定 Reducer（归约函数） |
 | `04-节点并行执行.ipynb` | 节点并行（fan-out/fan-in）的异常场景与处理方法 |
 | `05-MultiSchema.ipynb` | 多状态图（input/output schema）与私有状态 |
-| `02-Typedict&dataclass&Pydantic.ipynb` | `TypedDict` / `dataclass` / `Pydantic` 三种 State 定义方式的示例与优缺点对比 |
+| `06-预定义状态.ipynb` | 预定义状态、多 schema 与流式输出（含思考内容） |
+| `chapter02/01-add_sequence.ipynb` | 用 `StateGraph.add_sequence` 顺序添加并串联节点 |
+| `chapter02/02-静态分支&动态分支.ipynb` | 静态分支与动态分支（`add_conditional_edges` / `Command` / `Send`）的区别与用法 |
 
 ## License
 
