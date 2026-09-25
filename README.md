@@ -10,6 +10,7 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 - 演示 `Annotated[类型, reducer]` 状态归约（如列表追加、覆盖等）。
 - 静态分支与动态分支：`add_conditional_edges`、`Command(goto=...)`、`Send`（map-reduce）。
 - `Send` 配合工具（`@tool`）调用的 map-reduce 示例。
+- Agent Loop：LLM 与工具的循环调用，含 `ToolNode`、`tools_condition` 等动态派发方案。
 - 每个示例均可直接运行，并在 Notebook 中渲染出图结构。
 
 ## 目录结构
@@ -25,7 +26,10 @@ langgraph_demo/
 │   └── 06-预定义状态.ipynb                   # 预定义状态与流式输出
 ├── chapter02/
 │   ├── 01-add_sequence.ipynb                 # add_sequence 顺序添加节点
-│   └── 02-静态分支&动态分支.ipynb            # 静态边与动态路由（条件边/Command/Send）
+│   ├── 02-静态分支&动态分支.ipynb            # 静态边与动态路由（条件边/Command/Send）
+│   ├── 03-延迟执行.ipynb                     # 延迟执行
+│   ├── 04-fan-in.ipynb                       # 动态扇入（fan-in）
+│   └── 05-AgentLoop.ipynb                    # Agent Loop：工具调用循环的三种实现
 ├── pyproject.toml                            # 项目依赖与 Python 版本约束
 ├── uv.lock                                   # uv 锁定的依赖版本
 ├── .python-version                            # 指定 Python 3.13
@@ -76,6 +80,9 @@ uv run jupyter lab
 | `06-预定义状态.ipynb` | 预定义状态、多 schema 与流式输出（含思考内容） |
 | `chapter02/01-add_sequence.ipynb` | 用 `StateGraph.add_sequence` 顺序添加并串联节点 |
 | `chapter02/02-静态分支&动态分支.ipynb` | 静态分支与动态分支（`add_conditional_edges` / `Command` / `Send`）的区别与用法，含 `Send` + 工具调用示例 |
+| `chapter02/03-延迟执行.ipynb` | 延迟执行 |
+| `chapter02/04-fan-in.ipynb` | 动态扇入（fan-in）：多分支汇聚、superstep 与 reducer 合并 |
+| `chapter02/05-AgentLoop.ipynb` | Agent Loop：LLM 与工具的循环调用，含静态工具节点、`Send` 动态派发、`ToolNode` + `tools_condition` 三种实现 |
 
 ## License
 
