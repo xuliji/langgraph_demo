@@ -11,6 +11,8 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 - 静态分支与动态分支：`add_conditional_edges`、`Command(goto=...)`、`Send`（map-reduce）。
 - `Send` 配合工具（`@tool`）调用的 map-reduce 示例。
 - Agent Loop：LLM 与工具的循环调用，含 `ToolNode`、`tools_condition` 等动态派发方案。
+- 步数治理：`recursion_limit`（super-step 计数与并行折算）、业务级步数预算与优雅降级、checkpointer 断点续跑。
+- 失败治理：节点级 `RetryPolicy`（指数退避、`retry_on` 白名单、多套策略的匹配顺序）、`timeout` 超时与 `error_handler` 降级。
 - 每个示例均可直接运行，并在 Notebook 中渲染出图结构。
 
 ## 目录结构
@@ -29,19 +31,30 @@ langgraph_demo/
 │   ├── 02-静态分支&动态分支.ipynb            # 静态边与动态路由（条件边/Command/Send）
 │   ├── 03-延迟执行.ipynb                     # 延迟执行
 │   ├── 04-fan-in.ipynb                       # 动态扇入（fan-in）
-│   └── 05-AgentLoop.ipynb                    # Agent Loop：工具调用循环的三种实现
+│   ├── 05-AgentLoop.ipynb                    # Agent Loop：工具调用循环的三种实现 + 步数限制
+│   └── 06-重试机制.ipynb                     # 节点级重试、超时与降级处理
 ├── pyproject.toml                            # 项目依赖与 Python 版本约束
 ├── uv.lock                                   # uv 锁定的依赖版本
-├── .python-version                            # 指定 Python 3.13
-├── env.template                               # 环境变量模板
+├── .env.template                             # 环境变量模板
 ├── LICENSE                                    # MIT 开源协议
 └── README.md
 ```
 
 ## 环境要求
 
-- **Python 3.13**（`>=3.13,<3.14`，见 `pyproject.toml` 与 `.python-version`）
+- **Python 3.13**（`>=3.13,<3.14`，见 `pyproject.toml`）
 - [uv](https://docs.astral.sh/uv/) 包管理器
+- 本仓库示例基于以下版本编写（`pyproject.toml` 中已固定）：
+
+  | 包 | 版本 |
+  | --- | --- |
+  | `langgraph` | 1.2.11 |
+  | `langchain` | 1.3.18 |
+  | `langchain-core` | 1.6.0 |
+  | `langchain-deepseek` | 1.0.1 |
+
+  > ⚠️ 升级 `langgraph` 时注意版本约束：`langgraph>=1.2.11` 需要 `langchain>=1.3.18`，
+  > 而 `langchain 1.2.x` 的上限是 `langgraph<1.2.0`，两者不能共存。
 
 ## 快速开始
 
@@ -82,7 +95,8 @@ uv run jupyter lab
 | `chapter02/02-静态分支&动态分支.ipynb` | 静态分支与动态分支（`add_conditional_edges` / `Command` / `Send`）的区别与用法，含 `Send` + 工具调用示例 |
 | `chapter02/03-延迟执行.ipynb` | 延迟执行 |
 | `chapter02/04-fan-in.ipynb` | 动态扇入（fan-in）：多分支汇聚、superstep 与 reducer 合并 |
-| `chapter02/05-AgentLoop.ipynb` | Agent Loop：LLM 与工具的循环调用，含静态工具节点、`Send` 动态派发、`ToolNode` + `tools_condition` 三种实现 |
+| `chapter02/05-AgentLoop.ipynb` | Agent Loop：LLM 与工具的循环调用，含静态工具节点、`Send` 动态派发、`ToolNode` + `tools_condition` 三种实现；以及步数限制（`recursion_limit` 与 super-step 计数、chunk 数 ≠ 步数、断点续跑、业务级步数预算与优雅降级、`remaining_steps` 托管字段） |
+| `chapter02/06-重试机制.ipynb` | 节点级失败治理：`RetryPolicy`（`max_attempts`、指数退避与 jitter）、`retry_on` 白名单与多套策略的匹配顺序、重试与 state/步数的关系、`error_handler` 降级、`TimeoutPolicy` 超时、`set_node_defaults` 全图默认策略、`ToolNode` 工具级重试 |
 
 ## License
 
