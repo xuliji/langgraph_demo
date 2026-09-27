@@ -77,6 +77,8 @@ uv run jupyter lab
 | --- | --- |
 | `DEEPSEEK_API_BASE` | DeepSeek API 的基础地址 |
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 |
+| `OPENROUTER_API_KEY` | OpenRouter API 密钥（`chapter02/05-AgentLoop.ipynb` 使用） |
+| `OPENROUTER_API_BASE` | OpenRouter API 基础地址（可选，默认官方地址） |
 
 > ⚠️ 请勿将真实密钥提交到仓库。`.env` 应加入 `.gitignore`；若它已被跟踪，
 > 用 `git rm --cached .env` 取消跟踪，并轮换已泄露的密钥。
