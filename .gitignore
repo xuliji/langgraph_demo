@@ -1,5 +1,6 @@
 temp/
 idea/
+data/
 .env
 /.idea/.gitignore
 /.idea/langgraph-demo.iml
@@ -8,3 +9,4 @@ idea/
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/vcs.xml
+/.idea/dataSources.xml
