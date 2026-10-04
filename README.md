@@ -13,6 +13,10 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 - Agent Loop：LLM 与工具的循环调用，含 `ToolNode`、`tools_condition` 等动态派发方案。
 - 步数治理：`recursion_limit`（super-step 计数与并行折算）、业务级步数预算与优雅降级、checkpointer 断点续跑。
 - 失败治理：节点级 `RetryPolicy`（指数退避、`retry_on` 白名单、多套策略的匹配顺序）、`timeout` 超时与 `error_handler` 降级。
+- 节点缓存：`cache_policy` 复用模型调用与检索结果，含缓存键、TTL、手动失效与常见陷阱。
+- 持久化与记忆：`PostgresSaver` 按 `thread_id` 隔离会话状态，`PostgresStore` 跨会话保存用户偏好。
+- 失败恢复：`get_state()` 定位断点、`invoke(None, config)` 续跑、时间旅行回放与分叉。
+- 中断（human-in-the-loop）：动态 `interrupt()` 与静态 `interrupt_before` / `interrupt_after`，含并行中断与审批模式。
 - 每个示例均可直接运行，并在 Notebook 中渲染出图结构。
 
 ## 目录结构
@@ -32,9 +36,15 @@ langgraph_demo/
 │   ├── 03-延迟执行.ipynb                     # 延迟执行
 │   ├── 04-fan-in.ipynb                       # 动态扇入（fan-in）
 │   ├── 05-AgentLoop.ipynb                    # Agent Loop：工具调用循环的三种实现 + 步数限制
-│   └── 06-重试机制.ipynb                     # 节点级重试、超时与降级处理
+│   ├── 06-重试机制.ipynb                     # 节点级重试、超时与降级处理
+│   └── 07-节点缓存.ipynb                     # 节点级缓存策略、缓存键与失效陷阱
+├── chapter03/
+│   ├── 01-持久化.ipynb                       # checkpointer 短期记忆与 store 长期记忆
+│   ├── 02-失败后回复运行.ipynb               # 失败后断点续跑、时间旅行与 replay/fork 分叉
+│   └── 03-中断.ipynb                         # 动态中断、并行中断、审批模式与静态中断
 ├── pyproject.toml                            # 项目依赖与 Python 版本约束
 ├── uv.lock                                   # uv 锁定的依赖版本
+├── docker-compose-pg.yaml                    # 本地 Postgres 编排（chapter03/01 持久化使用）
 ├── .env.template                             # 环境变量模板
 ├── LICENSE                                    # MIT 开源协议
 └── README.md
@@ -69,6 +79,9 @@ cp .env.template .env
 uv run jupyter lab
 ```
 
+> `chapter03/01-持久化.ipynb` 需要一个可连接的 Postgres。其余章节不依赖数据库，
+> 直接运行即可。
+
 ## 环境变量
 
 部分示例会调用大模型，需要在项目根目录的 `.env` 中配置：
@@ -79,6 +92,8 @@ uv run jupyter lab
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 |
 | `OPENROUTER_API_KEY` | OpenRouter API 密钥（`chapter02/05-AgentLoop.ipynb` 使用） |
 | `OPENROUTER_API_BASE` | OpenRouter API 基础地址（可选，默认官方地址） |
+| `POSTGRES_CONN_STRING` | Postgres 连接串（`chapter03/01-持久化.ipynb` 使用），形如 `postgresql://用户:密码@127.0.0.1:5432/库名` |
+| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | `docker-compose-pg.yaml` 启动 Postgres 时读取的账号与库名 |
 
 > ⚠️ 请勿将真实密钥提交到仓库。`.env` 应加入 `.gitignore`；若它已被跟踪，
 > 用 `git rm --cached .env` 取消跟踪，并轮换已泄露的密钥。
@@ -99,6 +114,10 @@ uv run jupyter lab
 | `chapter02/04-fan-in.ipynb` | 动态扇入（fan-in）：多分支汇聚、superstep 与 reducer 合并 |
 | `chapter02/05-AgentLoop.ipynb` | Agent Loop：LLM 与工具的循环调用，含静态工具节点、`Send` 动态派发、`ToolNode` + `tools_condition` 三种实现；以及步数限制（`recursion_limit` 与 super-step 计数、chunk 数 ≠ 步数、断点续跑、业务级步数预算与优雅降级、`remaining_steps` 托管字段） |
 | `chapter02/06-重试机制.ipynb` | 节点级失败治理：`RetryPolicy`（`max_attempts`、指数退避与 jitter）、`retry_on` 白名单与多套策略的匹配顺序、重试与 state/步数的关系、`error_handler` 降级、`TimeoutPolicy` 超时、`set_node_defaults` 全图默认策略、`ToolNode` 工具级重试 |
+| `chapter02/07-节点缓存.ipynb` | 节点缓存：`cache_policy` 与 `compile(cache=...)` 的配合、默认缓存键为何易 miss、自定义 `key_func`、`CachePolicy(ttl=...)` 与 `clear_cache` 手动失效、命中缓存时是否执行节点体、缓存后端选型，以及与 checkpointer / retry 的关系 |
+| `chapter03/01-持久化.ipynb` | 持久化三种模式（checkpointer / store / 长期记忆）的分工；`PostgresSaver`、`PostgresStore` 单例封装与 `setup()`；`thread_id` 决定会话隔离；用 store + `system_prompt` 实现跨会话记住用户偏好 |
+| `chapter03/02-失败后回复运行.ipynb` | 节点抛异常时的真实行为；`get_state()` 定位断点（`next` / `pending_writes`）；修好后 `invoke(None, config)` 续跑且已完成节点不重跑；并行分支中成功的一半不白跑；时间旅行回到历史 `checkpoint_id`，以及 replay 与 fork 的区别 |
+| `chapter03/03-中断.ipynb` | 动态中断：节点内 `interrupt()` 收集输入、`Command(resume=...)` 恢复、多节点并行中断按 `id` 批量恢复、审批模式用 `Command(goto=...)` 分流；静态中断：`interrupt_before` / `interrupt_after` 在调用时指定断点、用 `get_state().next` 查断点、`update_state` 人工修正后放行、`"*"` 逐节点单步调试 |
 
 ## License
 
