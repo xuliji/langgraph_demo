@@ -11,3 +11,5 @@ data/
 /.idea/vcs.xml
 /.idea/dataSources.xml
 /.idea/workspace.xml
+/chapter04-hitl-demo/.langgraph_api/
+__pycache__/
