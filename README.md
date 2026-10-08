@@ -17,6 +17,7 @@ Jupyter Notebook 演示 LangGraph 的核心概念：图的构建、状态（Stat
 - 持久化与记忆：`PostgresSaver` 按 `thread_id` 隔离会话状态，`PostgresStore` 跨会话保存用户偏好。
 - 失败恢复：`get_state()` 定位断点、`invoke(None, config)` 续跑、时间旅行回放与分叉。
 - 中断（human-in-the-loop）：动态 `interrupt()` 与静态 `interrupt_before` / `interrupt_after`，含并行中断与审批模式。
+- 流式输出：`stream_mode` 各模式（`values` / `updates` / `messages` / `custom` / `tasks` / `checkpoints`）、多模式与子图嵌套、同步 `stream` 与异步 `astream`、`astream_events` 的 v2 / v3 两套事件协议。
 - 每个示例均可直接运行，并在 Notebook 中渲染出图结构。
 
 ## 目录结构
@@ -42,6 +43,8 @@ langgraph_demo/
 │   ├── 01-持久化.ipynb                       # checkpointer 短期记忆与 store 长期记忆
 │   ├── 02-失败后回复运行.ipynb               # 失败后断点续跑、时间旅行与 replay/fork 分叉
 │   └── 03-中断.ipynb                         # 动态中断、并行中断、审批模式与静态中断
+├── chapter05/
+│   └── 01-stream&astream.ipynb              # 流式输出：stream_mode 各模式、astream、astream_events
 ├── pyproject.toml                            # 项目依赖与 Python 版本约束
 ├── uv.lock                                   # uv 锁定的依赖版本
 ├── docker-compose-pg.yaml                    # 本地 Postgres 编排（chapter03/01 持久化使用）
@@ -118,6 +121,7 @@ uv run jupyter lab
 | `chapter03/01-持久化.ipynb` | 持久化三种模式（checkpointer / store / 长期记忆）的分工；`PostgresSaver`、`PostgresStore` 单例封装与 `setup()`；`thread_id` 决定会话隔离；用 store + `system_prompt` 实现跨会话记住用户偏好 |
 | `chapter03/02-失败后回复运行.ipynb` | 节点抛异常时的真实行为；`get_state()` 定位断点（`next` / `pending_writes`）；修好后 `invoke(None, config)` 续跑且已完成节点不重跑；并行分支中成功的一半不白跑；时间旅行回到历史 `checkpoint_id`，以及 replay 与 fork 的区别 |
 | `chapter03/03-中断.ipynb` | 动态中断：节点内 `interrupt()` 收集输入、`Command(resume=...)` 恢复、多节点并行中断按 `id` 批量恢复、审批模式用 `Command(goto=...)` 分流；静态中断：`interrupt_before` / `interrupt_after` 在调用时指定断点、用 `get_state().next` 查断点、`update_state` 人工修正后放行、`"*"` 逐节点单步调试 |
+| `chapter05/01-stream&astream.ipynb` | 流式输出：`stream_mode` 六种模式（`values` / `updates` / `messages` / `custom` / `tasks` / `checkpoints`）的产出差异与并行合并行为；多模式组合与 `subgraphs=True` 穿透子图；`get_stream_writer()` 推进度、`messages` 模式过滤 `langgraph_node`；同步 `stream` 与异步 `astream`；`astream_events` 的 v2 事件协议（`include_*` 过滤、`adispatch_custom_event`）与 v3 投影协议（`run.values` / `run.messages` / `transformers`、投影并发 drain） |
 
 ## License
 
